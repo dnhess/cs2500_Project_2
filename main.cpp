@@ -10,7 +10,7 @@ int main() {
     string line;
     ifstream fin;
 
-    fin.open("/Users/hess/Google Drive/Spring 2017/CS2500/cs2500_Project_2/data.gml");
+    fin.open("../data.gml");
 
     if(fin.fail())
     {
@@ -20,7 +20,7 @@ int main() {
     {
         while(true) {
             fin >>line;
-         //   cout <<"Line: "<<line<<endl;
+            //   cout <<"Line: "<<line<<endl;
             if (line == "node") {
                 fin >> line; //Grabs the [ after node
                 fin >>line; //Should grab id
@@ -62,5 +62,5 @@ int main() {
 //        cout <<"ID:"<<nodes[i].id<<endl;
 //        cout <<"ACTIVE: "<<nodes[i].active<<endl;
 //    }
-	return 0;
+    return 0;
 }
