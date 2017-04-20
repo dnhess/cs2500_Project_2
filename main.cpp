@@ -6,75 +6,14 @@
 #include <list>
 #include <iostream>
 #include <utility>
+#include <queue>
 using namespace std;
 
 //Declaring Functions
 void vecerase(vector< list< pair<int, int> > > &adjL, int i);
+bool bfs(vector< list< pair<int, int> > > &adjL, int s, int d, int temp);
 
 int main() {
-//    vector<node> nodes;
-//    srand(time(NULL));
-//    int id, loc, countv = 0, counte = 0;
-//    bool firstfind = true;
-//    string line;
-//    ifstream fin;
-//
-//    fin.open("../data.gml");
-//
-//    if(fin.fail())
-//    {
-//        cout <<"IT HAS FAILED TO OPEN!"<<endl;
-//    }
-//    if(fin.good())
-//    {
-//        while(true) {
-//            fin >>line;
-//            //   cout <<"Line: "<<line<<endl;
-//            if (line == "node") {
-//                fin >> line; //Grabs the [ after node
-//                fin >>line; //Should grab id
-//                if(line == "id")
-//                {
-//                    fin >> line; //Grabs the value of id
-//                    countv++;
-//                }
-//                id = atoi(line.c_str());
-//                cout <<id<<endl;
-//                nodes.push_back(node(id,true,rand() % 20 + 1));
-//                nodes[id].id = id;
-//                nodes[id].active = true;
-//            }
-//            if (line == "source") {
-//                if(firstfind)
-//                {
-//                    firstfind = false;
-//                } else counte++;
-//                fin >> line;
-//                id = atoi(line.c_str());
-//            }
-//            if (line == "target") {
-//                fin >>line;
-//                loc = atoi(line.c_str());
-//            }
-//            if(fin.eof()) break;
-//        }
-//    }
-//
-//    fin.close();
-//
-//    cout<<"Number of verticies: "<<countv<<endl;
-//    cout<<"Number of edges: "<<counte<<endl;
-//    cout <<"Size of nodes: "<<nodes.size()<<endl;
-//    for(int i = 0; i < nodes.size(); i++)
-//    {
-//        cout <<"ID:"<<nodes[i].id<<endl;
-//        cout <<"ACTIVE: "<<nodes[i].active<<endl;
-//        cout <<"WEIGHT: "<<nodes[i].weight<<endl;
-//    }
-//    return 0;
-
-    //=======TRY NUMBER 2=======
-
     int vertices, edges, v1, v2, weight;
     srand(time(NULL));
     int id, loc, countv = 0, counte = 0;
@@ -166,18 +105,6 @@ int main() {
     fin.close();
 
 
-
-    //Works for removing an element!
-//    list<pair<int,int>> li = adjacencyList[10];
-//    adjacencyList[10].clear();
-//    for(auto it=li.rbegin();it!=li.rend();++it) {
-//        cout << (*it).first<< '\n';
-//        if(it->first != 272) {
-//            adjacencyList[10].push_back(make_pair(it->first,it->second));
-//        }
-//    }
-
-
     for (int i = 0; i < adjacencyList.size(); ++i) {
         printf("adjacencyList[%d] ", i);
 
@@ -187,17 +114,17 @@ int main() {
             printf(" -> %d(%d)", itr->first, itr->second);
             ++itr;
         }
-
         printf("\n");
     }
+
 }
 
 
-//Functions
+//Used to remove an edge (Attack it)
 void vecerase(vector< list< pair<int, int> > >& adjList, int i)
 {
     list<pair<int,int>> li = adjList[i];
-    adjList[10].clear();
+    adjList[i].clear();
     for(auto it=li.rbegin();it!=li.rend();++it) {
         cout << (*it).first<< '\n';
         if(it->first != 272) {
@@ -206,4 +133,41 @@ void vecerase(vector< list< pair<int, int> > >& adjList, int i)
     }
 
 
+}
+
+
+//Checks to see if the selected values can actually be reached
+bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
+
+
+    bool *visited = new bool[V];
+
+    for(int i = 0; i < V; i++)
+        visited[i] = false;
+
+    list<int> queue;
+
+    visited[s] = true;
+    queue.push_back(s);
+
+    list< pair<int, int> >::iterator itr = adjL[s].begin();
+
+    while(!queue.empty())
+    {
+        s = queue.front();
+        queue.pop_front();
+
+
+        for(itr = adjL[s].begin(); itr != adjL[s].end(); itr++)
+        {
+            if(!visited[itr->first])
+            {
+                visited[itr->first] = true;
+                if(itr->first == d)
+                    return true;
+                queue.push_back((*itr).first);
+            }
+        }
+    }
+    return false;
 }
