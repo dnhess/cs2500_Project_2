@@ -11,8 +11,8 @@ using namespace std;
 
 //Declaring Functions
 void vecerase(vector< list< pair<int, int> > > &adjL, int i);
-bool bfs(vector< list< pair<int, int> > > &adjL, int s, int d, int V);
-int fordFulkerson(vector< list< pair<int, int> > > &adjL, int s, int d);
+bool bfs(vector< list< pair<int, int> > > adjL, int s, int d, int V);
+int fordFulkerson(vector< list< pair<int, int> > > adjL, int s, int d, int V);
 
 int main() {
     int vertices, edges, v1, v2, weight;
@@ -118,10 +118,10 @@ int main() {
         printf("\n");
     }
 
-    cout <<"Does it reach?: "<<endl;
-    cout <<bfs(adjacencyList, 742, 743, vertices);
+//    cout <<"Does it reach?: "<<endl;
+//    cout <<bfs(adjacencyList, 743, 744, vertices);
 
-    fordFulkerson(adjacencyList, 742, 743);
+    cout <<"Result: "<<fordFulkerson(adjacencyList, 15, 17, vertices)<<endl;
     return 0;
 
 }
@@ -141,7 +141,7 @@ void vecerase(vector< list< pair<int, int> > >& adjList, int i)
 
 
 //Checks to see if the selected values can actually be reached
-bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
+bool bfs(vector<list<pair<int, int> > > adjL, int s, int d, int V) {
 
 
     bool *visited = new bool[V];
@@ -165,30 +165,54 @@ bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
 
         for(itr = adjL[s].begin(); itr != adjL[s].end(); itr++)
         {
-            if(!visited[itr->first])
+            if(!visited[itr->first] && itr->second >= 1)
             {
                 visited[itr->first] = true;
-                if(itr->first == d)
+                if(itr->first == d) {
+                    queue.clear();
                     return true;
+                }
                 queue.push_back((*itr).first);
             }
         }
     }
+    delete[](visited);
 
     return false;
 }
 
-int fordFulkerson(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
+int fordFulkerson(vector<list<pair<int, int> > > adjL, int s, int d, int V) {
     int u, v;
 
     vector< list< pair<int, int> > > rlist(adjL);
 
     int max_flow = 0;
 
-    while(bfs(adjL,s,d,V))
+    list< pair<int, int> >::iterator itr = rlist[s].begin();
+    list<int> queue;
+    queue.push_back(s);
+
+    //cout <<"BFS IN HERE: "<<bfs(rlist,s,d,V)<<endl;
+    while(bfs(rlist,s,d,V))
     {
         int path_flow = INT_MAX;
+        //cout <<"GETS HERE: "<<path_flow<<endl;
+        s = queue.front();
+        queue.pop_front();
 
+
+        for(itr = rlist[s].begin(); itr != rlist[s].end(); itr++)
+        {
+            queue.push_back((*itr).first);
+            path_flow = min(path_flow, itr->second);
+          //  cout <<"Path flow: "<<path_flow<<endl;
+            itr->second -= path_flow;
+            if(itr->second < 0)
+                itr->second = 0;
+            break;
+        }
+        max_flow += path_flow;
     }
+    return max_flow;
 }
 
