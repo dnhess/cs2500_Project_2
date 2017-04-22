@@ -11,7 +11,8 @@ using namespace std;
 
 //Declaring Functions
 void vecerase(vector< list< pair<int, int> > > &adjL, int i);
-bool bfs(vector< list< pair<int, int> > > &adjL, int s, int d, int temp);
+bool bfs(vector< list< pair<int, int> > > &adjL, int s, int d, int V);
+int fordFulkerson(vector< list< pair<int, int> > > &adjL, int s, int d);
 
 int main() {
     int vertices, edges, v1, v2, weight;
@@ -117,8 +118,13 @@ int main() {
         printf("\n");
     }
 
-}
+    cout <<"Does it reach?: "<<endl;
+    cout <<bfs(adjacencyList, 742, 743, vertices);
 
+    fordFulkerson(adjacencyList, 742, 743);
+    return 0;
+
+}
 
 //Used to remove an edge (Attack it)
 void vecerase(vector< list< pair<int, int> > >& adjList, int i)
@@ -131,8 +137,6 @@ void vecerase(vector< list< pair<int, int> > >& adjList, int i)
             adjList[i].push_back(make_pair(it->first,it->second));
         }
     }
-
-
 }
 
 
@@ -155,6 +159,7 @@ bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
     while(!queue.empty())
     {
         s = queue.front();
+        //cout <<s<<" "<<endl;
         queue.pop_front();
 
 
@@ -169,5 +174,21 @@ bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
             }
         }
     }
+
     return false;
 }
+
+int fordFulkerson(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
+    int u, v;
+
+    vector< list< pair<int, int> > > rlist(adjL);
+
+    int max_flow = 0;
+
+    while(bfs(adjL,s,d,V))
+    {
+        int path_flow = INT_MAX;
+
+    }
+}
+
