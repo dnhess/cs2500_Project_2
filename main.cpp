@@ -10,7 +10,7 @@
 using namespace std;
 
 //Declaring Functions
-void vecerase(vector< list< pair<int, int> > > &adjL, int i);
+void vecerase(vector< list< pair<int, int> > > &adjL, int i, int s);
 bool bfs(vector< list< pair<int, int> > > adjL, int s, int d, int V);
 int fordFulkerson(vector< list< pair<int, int> > > adjL, int s, int d, int V);
 
@@ -121,19 +121,19 @@ int main() {
 //    cout <<"Does it reach?: "<<endl;
 //    cout <<bfs(adjacencyList, 743, 744, vertices);
 
-    cout <<"Result: "<<fordFulkerson(adjacencyList, 15, 17, vertices)<<endl;
+    cout <<"Result: \n"<<fordFulkerson(adjacencyList, 15, 17, vertices)<<endl;
     return 0;
 
 }
 
 //Used to remove an edge (Attack it)
-void vecerase(vector< list< pair<int, int> > >& adjList, int i)
+void vecerase(vector< list< pair<int, int> > >& adjList, int i, int s)
 {
-    list<pair<int,int>> li = adjList[i];
+    list<pair<int,int>> li = adjList[s];
     adjList[i].clear();
     for(auto it=li.rbegin();it!=li.rend();++it) {
-        cout << (*it).first<< '\n';
-        if(it->first != 272) {
+        //cout << (*it).first<< '\n';
+        if(it->first != i) {
             adjList[i].push_back(make_pair(it->first,it->second));
         }
     }
@@ -201,17 +201,24 @@ int fordFulkerson(vector<list<pair<int, int> > > adjL, int s, int d, int V) {
         queue.pop_front();
 
 
-        for(itr = rlist[s].begin(); itr != rlist[s].end(); itr++)
+        for(itr = rlist[s].begin(); itr != rlist[s].end(); ++itr)
         {
+            cout <<"ITR Value: "<<itr->first<<endl;
+            cout <<"Weight: "<<itr->second<<endl;
             queue.push_back((*itr).first);
             path_flow = min(path_flow, itr->second);
           //  cout <<"Path flow: "<<path_flow<<endl;
             itr->second -= path_flow;
             if(itr->second < 0)
                 itr->second = 0;
+            //vecerase(rlist, itr->first, s);
             break;
         }
+
+        //The problem: The algo just adds the first number in the list to the weight connecting 16 to 17
+        //How to fix: Check weight of all edges to the final destination. Once it is reached subtract the path_flow weight from all the edges and then check to see if you can repeat that process.
         max_flow += path_flow;
+        cout <<"Still reachable?: "<<bfs(rlist,s,d,V)<<endl;
     }
     return max_flow;
 }
