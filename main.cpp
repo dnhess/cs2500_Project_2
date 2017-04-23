@@ -121,7 +121,7 @@ int main() {
 //    cout <<"Does it reach?: "<<endl;
 //    cout <<bfs(adjacencyList, 743, 744, vertices);
 
-    cout <<"Result: \n"<<fordFulkerson(adjacencyList, 15, 17, vertices)<<endl;
+    cout <<"Result: \n"<<fordFulkerson(adjacencyList, 122, 669, vertices)<<endl;
     return 0;
 
 }
@@ -182,43 +182,77 @@ bool bfs(vector<list<pair<int, int> > > adjL, int s, int d, int V) {
 }
 
 int fordFulkerson(vector<list<pair<int, int> > > adjL, int s, int d, int V) {
-    int u, v;
-
+    bool firstrun = true;
+    int path_flow;
+    int foundd = 0;
+    int perms = s;
+    int tempflow;
+    bool addedmax = true;
     vector< list< pair<int, int> > > rlist(adjL);
 
     int max_flow = 0;
 
     list< pair<int, int> >::iterator itr = rlist[s].begin();
     list<int> queue;
+    list<int> tofollow;
     queue.push_back(s);
 
     //cout <<"BFS IN HERE: "<<bfs(rlist,s,d,V)<<endl;
-    while(bfs(rlist,s,d,V))
+    while(bfs(rlist,perms,d,V))
     {
-        int path_flow = INT_MAX;
-        //cout <<"GETS HERE: "<<path_flow<<endl;
+        if(firstrun)
+            path_flow = INT_MAX;
         s = queue.front();
         queue.pop_front();
 
-
-        for(itr = rlist[s].begin(); itr != rlist[s].end(); ++itr)
-        {
-            cout <<"ITR Value: "<<itr->first<<endl;
-            cout <<"Weight: "<<itr->second<<endl;
+        for(itr = rlist[s].begin(); itr != rlist[s].end(); ++itr) {
+            if (firstrun)
+                firstrun = false;
+            cout << "ITR Value: " << itr->first << endl;
+            cout << "Weight: " << itr->second << endl;
             queue.push_back((*itr).first);
-            path_flow = min(path_flow, itr->second);
-          //  cout <<"Path flow: "<<path_flow<<endl;
-            itr->second -= path_flow;
+            if (foundd != 1 && itr->second != 0)
+            {
+                path_flow = min(path_flow, itr->second);
+            }
+            cout <<"path flow value: "<<path_flow<<endl;
+            if(foundd == 1)
+            {
+                cout <<"Old weight: "<<itr->second<<endl;
+                tempflow = itr->second;
+                itr->second -= path_flow;
+                if(itr->second < 0)
+                    itr->second = 0;
+                if(tempflow == path_flow)
+                    goto jump;
+                cout <<"New Weight: "<<itr->second<<endl;
+            }
             if(itr->second < 0)
                 itr->second = 0;
-            //vecerase(rlist, itr->first, s);
-            break;
+            if(itr->first == d) {
+                if(foundd == 0) {
+                    foundd++;
+                    addedmax = false;
+                    queue.clear();
+                    queue.push_back(perms);
+                    break;
+                }
+                else{
+                    foundd = 0;
+                    path_flow = INT_MAX;
+                    addedmax = false;
+                    queue.clear();
+                    queue.push_back(perms);
+                    break;
+                }
+            }
         }
-
-        //The problem: The algo just adds the first number in the list to the weight connecting 16 to 17
-        //How to fix: Check weight of all edges to the final destination. Once it is reached subtract the path_flow weight from all the edges and then check to see if you can repeat that process.
-        max_flow += path_flow;
-        cout <<"Still reachable?: "<<bfs(rlist,s,d,V)<<endl;
+jump:
+        if(foundd == 1 && !addedmax) {
+            max_flow += path_flow;
+            addedmax = true;
+        }
+        //cout <<"Still reachable?: "<<bfs(rlist,s,d,V)<<endl;
     }
     return max_flow;
 }
