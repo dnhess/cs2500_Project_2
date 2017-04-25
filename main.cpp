@@ -134,8 +134,8 @@ int main() {
     cout <<"Source: "<<source<<endl;
     cout <<"Dest: "<<dest<<endl;
     cout <<"Depth: "<<depth<<endl;
-    routeone(adjacencyList, source, dest, vertices, to_delete, simple_delete);
-    //routetwo(adjacencyList, 401, 445, vertices, to_delete, simple_delete);
+//    routeone(adjacencyList, source, dest, vertices, to_delete, simple_delete);
+    routetwo(adjacencyList, 322, 670, vertices, to_delete, simple_delete);
     return 0;
 
 }
@@ -150,8 +150,12 @@ void vecerase(vector< list< pair<int, int> > >& adjList, int i, int s)
     for(auto it=li.rbegin();it!=li.rend();++it) {
         //cout << (*it).first<< '\n';
         if(it->first != i) {
-//            cout <<"Making a pair out of: "<<it->first<<" and "<<it->second<<endl;
+            cout <<"Making a pair out of: "<<it->first<<" and "<<it->second<<endl;
             adjList[i].push_back(make_pair(it->first,it->second));
+        } else
+        {
+            cout <<"Making a pair out of: "<<it->first<<" and "<<it->second<<endl;
+            adjList[i].push_back(make_pair(it->first,0));
         }
     }
 }
@@ -164,6 +168,7 @@ bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
     bool *visited = new bool[V];
     depth = 0;
     bool notzero = true;
+    bool findazero = false;
     for(int i = 0; i < V; i++)
         visited[i] = false;
 
@@ -184,7 +189,7 @@ bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
         {
             if(itr->second == 0)
                 notzero = false;
-           else if(!visited[itr->first] && itr->second >= 1)
+           else if(!visited[itr->first] && itr->second != 0)
             {
                 notzero = true;
                 visited[itr->first] = true;
@@ -193,7 +198,8 @@ bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
                     itr->second = 20;
                     return true;
                 }
-                queue.push_back((*itr).first);
+                if(findazero == false)
+                  queue.push_back((*itr).first);
             }
         }
         if(notzero && distance(adjL[s].begin(),adjL[s].end()) != 0)
@@ -248,10 +254,19 @@ int fordFulkerson(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<
                     if(firstrun1) {
                         to_delete.push_back(make_pair(s, itr->first));
                     }
-                    simple_delete.first = s;
-                    simple_delete.second = itr->first;
-//                    cout <<"Simple delete first"<<simple_delete.first<<endl;
-//                    cout <<"Simple delete second"<<simple_delete.second<<endl;
+                    if(itr->second == 0) {
+                    }else{
+                        cout <<"Weight of the source: "<<s<<endl;
+                        cout <<"To the dest: "<<itr->first<<endl;
+                        cout <<"Weight: "<<itr->second<<endl;
+                        simple_delete.first = s;
+                        simple_delete.second = itr->first;
+                                                cout << "Simple delete first" << simple_delete.first << endl;
+//
+                                                cout << "Simple delete second" << simple_delete.second << endl;
+
+                    }
+
                 }
                 if(tempflow == path_flow)
                     if(foundd == 1 && !addedmax) {
@@ -317,6 +332,7 @@ void routeone(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair
     fdp.close();
 }
 
+//TODO: This algorithm will keep trying to delete a node once it has been removed
 void routetwo(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair<int,int>> &to_delete, pair<int,int> & simple_delete)
 {
     int time = 100;
@@ -339,12 +355,13 @@ void routetwo(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair
         }
         else
             ipk << time <<"," << depth<<endl;
+        fordFulkerson(adjL, s, d, V, to_delete, simple_delete, firstrun);
         cout <<"=====DELETING====="<<endl;
         cout <<"What it is looking for: "<<simple_delete.second<<endl;
         cout <<"The node it is coming from: "<<simple_delete.first<<endl;
         vecerase(adjL, simple_delete.second, simple_delete.first);
         time--;
-        if(bfs(adjL, s, d, V) == true)
+        if(bfs(adjL, s, d, V))
             flow = fordFulkerson(adjL, s, d, V, to_delete, simple_delete, firstrun);
         else
             flow = 0;
