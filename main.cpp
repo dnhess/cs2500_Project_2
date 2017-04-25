@@ -20,7 +20,9 @@ void vecerase(vector< list< pair<int, int> > > &adjL, int i, int s);
 bool bfs(vector< list< pair<int, int> > > &adjL, int s, int d, int V);
 int fordFulkerson(vector< list< pair<int, int> > > adjL, int s, int d, int V, list<pair<int,int>> &to_delete, pair<int,int> &simple_delete, bool &firstrun);
 
-void routeone(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair<int,int>> &to_delete, pair<int,int> & simple_delete);
+void routeone(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair<int,int>> &to_delete,pair<int,int> & simple_delete);
+void routetwo(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair<int,int>> &to_delete, pair<int,int> & simple_delete);
+
 
 int main() {
     int vertices;
@@ -133,6 +135,7 @@ int main() {
     cout <<"Dest: "<<dest<<endl;
     cout <<"Depth: "<<depth<<endl;
     routeone(adjacencyList, source, dest, vertices, to_delete, simple_delete);
+    //routetwo(adjacencyList, 401, 445, vertices, to_delete, simple_delete);
     return 0;
 
 }
@@ -140,11 +143,14 @@ int main() {
 //Used to remove an edge (Attack it)
 void vecerase(vector< list< pair<int, int> > >& adjList, int i, int s)
 {
+    //i is what it is looking for
+    //s is the position it starts from
     list<pair<int,int>> li = adjList[s];
     adjList[i].clear();
     for(auto it=li.rbegin();it!=li.rend();++it) {
         //cout << (*it).first<< '\n';
         if(it->first != i) {
+//            cout <<"Making a pair out of: "<<it->first<<" and "<<it->second<<endl;
             adjList[i].push_back(make_pair(it->first,it->second));
         }
     }
@@ -183,17 +189,18 @@ bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
                 notzero = true;
                 visited[itr->first] = true;
                 if(itr->first == d) {
+                    depth++;
                     itr->second = 20;
                     return true;
                 }
                 queue.push_back((*itr).first);
             }
         }
-        if(notzero)
+        if(notzero && distance(adjL[s].begin(),adjL[s].end()) != 0)
             depth++;
     }
    delete[](visited);
-
+    depth = 0;
     return false;
 }
 
@@ -203,9 +210,10 @@ int fordFulkerson(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<
     int path_flow;
     int foundd = 0;
     int perms = s;
-    int countforvec = 0;
-    int tempflow;
+    int tempflow = 0;
     bool addedmax = true;
+    simple_delete.first = 0;
+    simple_delete.second = 0;
     vector< list< pair<int, int> > > rlist(adjL);
 
     int max_flow = 0;
@@ -228,7 +236,7 @@ int fordFulkerson(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<
             {
                 path_flow = min(path_flow, itr->second);
             }
-            if(foundd == 1)
+            if(foundd == 1 && itr->second != 0)
             {
                 tempflow = itr->second;
                 itr->second -= path_flow;
@@ -237,12 +245,13 @@ int fordFulkerson(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<
                 if(max_delete < itr->second && s != perms && itr->first != d)
                 {
                     max_delete = itr->second;
-                    //Change to list
                     if(firstrun1) {
                         to_delete.push_back(make_pair(s, itr->first));
                     }
                     simple_delete.first = s;
                     simple_delete.second = itr->first;
+//                    cout <<"Simple delete first"<<simple_delete.first<<endl;
+//                    cout <<"Simple delete second"<<simple_delete.second<<endl;
                 }
                 if(tempflow == path_flow)
                     if(foundd == 1 && !addedmax) {
@@ -278,9 +287,9 @@ int fordFulkerson(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<
 
 void routeone(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair<int,int>> &to_delete, pair<int,int> & simple_delete) {
     int time = 100;
+    bfs(adjL, s, d, V);
     bool firstrun = true;
     bool firstrun1 = true;
-    cout <<"Depth inside routeone: "<<depth<<endl;
     int tempdepth = depth;
     int flow = fordFulkerson(adjL, s, d, V, to_delete, simple_delete, firstrun);
     fot.open("../flowovertime.csv");
@@ -303,4 +312,45 @@ void routeone(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair
         flow = fordFulkerson(adjL, s, d, V, to_delete, simple_delete, firstrun);
         bfs(adjL, s, d, V);
     }while(time != 0);
+    fot.close();
+    ipk.close();
+    fdp.close();
+}
+
+void routetwo(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair<int,int>> &to_delete, pair<int,int> & simple_delete)
+{
+    int time = 100;
+    bfs(adjL, s, d, V);
+    bool firstrun = true;
+    bool firstrun1 = true;
+    int tempdepth = depth;
+    int flow = fordFulkerson(adjL, s, d, V, to_delete, simple_delete, firstrun);
+    fot.open("../flowovertime.csv");
+    fot<<"Time, Flow"<<endl;
+    fdp.open("../flowdisp.csv"); //Not sure what to output on this one
+    ipk.open("../impactK.csv");
+    ipk<<"Time, Number of Nodes"<<endl;
+    do {
+//        cout << time <<","<<flow<<endl;
+        fot << time << "," << flow << endl;
+        if(firstrun1) {
+            firstrun1 = false;
+            ipk << time << "," << tempdepth << endl;
+        }
+        else
+            ipk << time <<"," << depth<<endl;
+        cout <<"=====DELETING====="<<endl;
+        cout <<"What it is looking for: "<<simple_delete.second<<endl;
+        cout <<"The node it is coming from: "<<simple_delete.first<<endl;
+        vecerase(adjL, simple_delete.second, simple_delete.first);
+        time--;
+        if(bfs(adjL, s, d, V) == true)
+            flow = fordFulkerson(adjL, s, d, V, to_delete, simple_delete, firstrun);
+        else
+            flow = 0;
+        bfs(adjL, s, d, V);
+    }while(time != 0);
+    fot.close();
+    ipk.close();
+    fdp.close();
 }
