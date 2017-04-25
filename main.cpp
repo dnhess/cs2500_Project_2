@@ -134,8 +134,8 @@ int main() {
 //    cout <<"Source: "<<source<<endl;
 //    cout <<"Dest: "<<dest<<endl;
 //    cout <<"Depth: "<<depth<<endl;
-    routeone(adjacencyList, source, dest, vertices, to_delete, simple_delete);
-//    routetwo(adjacencyList, 322, 670, vertices, to_delete, simple_delete);
+    //routeone(adjacencyList, source, dest, vertices, to_delete, simple_delete);
+    routetwo(adjacencyList, source, dest, vertices, to_delete, simple_delete);
     return 0;
 
 }
@@ -153,9 +153,9 @@ void vecerase(vector< list< pair<int, int> > >& adjList, int i, int s)
         for (auto it = li.rbegin(); it != li.rend(); ++it) {
             //cout << (*it).first<< '\n';
             if (it->first != i) {
-                cout << "Making a pair out of: " << it->first << " and " << it->second << endl;
+//                cout << "Making a pair out of: " << it->first << " and " << it->second << endl;
                 adjList[i].push_back(make_pair(it->first, it->second));
-            } else cout << "Not adding: " << it->first << " and " << it->second << endl;
+            } //else cout << "Not adding: " << it->first << " and " << it->second << endl;
         }
 //    }
 }
@@ -251,7 +251,7 @@ int fordFulkerson(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<
                 if(max_delete < itr->second && s != perms && itr->first != d)
                 {
                     max_delete = itr->second;
-                    if(firstrun1) {
+                    if(to_delete.empty()) {
                         to_delete.push_back(make_pair(s, itr->first));
                     }
 //                    if(itr->second == 0 || s == perms || itr->first == d) {
@@ -356,9 +356,9 @@ void routetwo(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair
         else
             ipk << time <<"," << depth<<endl;
         fordFulkerson(adjL, s, d, V, to_delete, simple_delete, firstrun);
-        cout <<"=====DELETING====="<<endl;
-        cout <<"What it is looking for: "<<simple_delete.second<<endl;
-        cout <<"The node it is coming from: "<<simple_delete.first<<endl;
+//        cout <<"=====DELETING====="<<endl;
+//        cout <<"What it is looking for: "<<simple_delete.second<<endl;
+//        cout <<"The node it is coming from: "<<simple_delete.first<<endl;
         vecerase(adjL, simple_delete.second, simple_delete.first);
         time--;
         if(bfs(adjL, s, d, V))
