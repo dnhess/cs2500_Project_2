@@ -131,11 +131,11 @@ int main() {
         itr->second = 20;
         ++itr;
     }
-    cout <<"Source: "<<source<<endl;
-    cout <<"Dest: "<<dest<<endl;
-    cout <<"Depth: "<<depth<<endl;
-//    routeone(adjacencyList, source, dest, vertices, to_delete, simple_delete);
-    routetwo(adjacencyList, 322, 670, vertices, to_delete, simple_delete);
+//    cout <<"Source: "<<source<<endl;
+//    cout <<"Dest: "<<dest<<endl;
+//    cout <<"Depth: "<<depth<<endl;
+    routeone(adjacencyList, source, dest, vertices, to_delete, simple_delete);
+//    routetwo(adjacencyList, 322, 670, vertices, to_delete, simple_delete);
     return 0;
 
 }
@@ -146,18 +146,18 @@ void vecerase(vector< list< pair<int, int> > >& adjList, int i, int s)
     //i is what it is looking for
     //s is the position it starts from
     list<pair<int,int>> li = adjList[s];
-    adjList[i].clear();
-    for(auto it=li.rbegin();it!=li.rend();++it) {
-        //cout << (*it).first<< '\n';
-        if(it->first != i) {
-            cout <<"Making a pair out of: "<<it->first<<" and "<<it->second<<endl;
-            adjList[i].push_back(make_pair(it->first,it->second));
-        } else
-        {
-            cout <<"Making a pair out of: "<<it->first<<" and "<<it->second<<endl;
-            adjList[i].push_back(make_pair(it->first,0));
+    adjList[s].clear();
+//    if(distance(li.begin(),li.end()) == 0)
+//    else
+//    {
+        for (auto it = li.rbegin(); it != li.rend(); ++it) {
+            //cout << (*it).first<< '\n';
+            if (it->first != i) {
+                cout << "Making a pair out of: " << it->first << " and " << it->second << endl;
+                adjList[i].push_back(make_pair(it->first, it->second));
+            } else cout << "Not adding: " << it->first << " and " << it->second << endl;
         }
-    }
+//    }
 }
 
 
@@ -254,18 +254,17 @@ int fordFulkerson(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<
                     if(firstrun1) {
                         to_delete.push_back(make_pair(s, itr->first));
                     }
-                    if(itr->second == 0) {
-                    }else{
-                        cout <<"Weight of the source: "<<s<<endl;
-                        cout <<"To the dest: "<<itr->first<<endl;
-                        cout <<"Weight: "<<itr->second<<endl;
+//                    if(itr->second == 0 || s == perms || itr->first == d) {
+//                    }else{
+//                        cout <<"Weight of the source: "<<s<<endl;
+//                        cout <<"To the dest: "<<itr->first<<endl;
+//                        cout <<"Weight: "<<itr->second<<endl;
                         simple_delete.first = s;
                         simple_delete.second = itr->first;
-                                                cout << "Simple delete first" << simple_delete.first << endl;
-//
-                                                cout << "Simple delete second" << simple_delete.second << endl;
+//                                                cout << "Simple delete first" << simple_delete.first << endl;
+//                                                cout << "Simple delete second" << simple_delete.second << endl;
 
-                    }
+//                    }
 
                 }
                 if(tempflow == path_flow)
@@ -295,6 +294,7 @@ int fordFulkerson(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<
             }
         }
     }
+    rlist.clear();
     firstrun1 = false;
     queue.clear();
     return max_flow;
