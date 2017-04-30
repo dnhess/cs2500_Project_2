@@ -26,7 +26,7 @@ void routetwo(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair
 
 int main() {
     int vertices;
-    int flow;
+    int tempid = 0;
     srand(time(NULL));
     int id, loc, countv = 0, counte = 0, source, dest;
     list<pair<int,int>> to_delete;
@@ -106,6 +106,17 @@ int main() {
                 }
                 fin >> line;
                 id = atoi(line.c_str());
+                if(id != tempid-1 || id != tempid)
+                {
+                    while(id != tempid) {
+                        adjacencyList[tempid].push_back(make_pair(rand() % vertices, (rand() % 20) + 1));
+                        tempid++;
+                    }
+                }
+                else
+                {
+                    tempid = id;
+                }
             }
             if (line == "target") {
                 fin >>line;
@@ -118,12 +129,24 @@ int main() {
     }
     fin.close();
 
+    for (int i = 0; i < adjacencyList.size(); ++i) {
+        printf("adjacencyList[%d]", i);
 
+        list<pair<int, int> >::iterator itr1 = adjacencyList[i].begin();
+
+        while (itr1 != adjacencyList[i].end()) {
+            printf(" -> %d(%d)", itr1->first, itr1->second);
+            ++itr1;
+        }
+        cout <<endl;
+    }
     do
     {
         source = rand() % vertices;
         dest = rand() % vertices;
-    }while(!(bfs(adjacencyList, source, dest, vertices) && depth >= 10));
+//        if(depth >=25)
+          //  cout <<"The value of depth: "<<depth<<endl;
+    }while(!(bfs(adjacencyList, source, dest, vertices) && depth == 50));
 
     //===========Change Source to weight 20===========
     list< pair<int, int> >::iterator itr = adjacencyList[source].begin();
@@ -131,11 +154,11 @@ int main() {
         itr->second = 20;
         ++itr;
     }
-//    cout <<"Source: "<<source<<endl;
-//    cout <<"Dest: "<<dest<<endl;
-//    cout <<"Depth: "<<depth<<endl;
-    //routeone(adjacencyList, source, dest, vertices, to_delete, simple_delete);
-    routetwo(adjacencyList, source, dest, vertices, to_delete, simple_delete);
+    cout <<"Source: "<<source<<endl;
+    cout <<"Dest: "<<dest<<endl;
+    cout <<"Depth: "<<depth<<endl;
+    routeone(adjacencyList, source, dest, vertices, to_delete, simple_delete);
+//    routetwo(adjacencyList, source, dest, vertices, to_delete, simple_delete);
     return 0;
 
 }
@@ -183,13 +206,11 @@ bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
     {
         s = queue.front();
         queue.pop_front();
-
-
         for(itr = adjL[s].begin(); itr != adjL[s].end(); itr++)
         {
             if(itr->second == 0)
                 notzero = false;
-           else if(!visited[itr->first] && itr->second != 0)
+           if(!visited[itr->first] && itr->second != 0)
             {
                 notzero = true;
                 visited[itr->first] = true;
@@ -205,8 +226,8 @@ bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
         if(notzero && distance(adjL[s].begin(),adjL[s].end()) != 0)
             depth++;
     }
-   delete[](visited);
     depth = 0;
+   delete[](visited);
     return false;
 }
 
@@ -254,17 +275,8 @@ int fordFulkerson(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<
                     if(to_delete.empty()) {
                         to_delete.push_back(make_pair(s, itr->first));
                     }
-//                    if(itr->second == 0 || s == perms || itr->first == d) {
-//                    }else{
-//                        cout <<"Weight of the source: "<<s<<endl;
-//                        cout <<"To the dest: "<<itr->first<<endl;
-//                        cout <<"Weight: "<<itr->second<<endl;
                         simple_delete.first = s;
                         simple_delete.second = itr->first;
-//                                                cout << "Simple delete first" << simple_delete.first << endl;
-//                                                cout << "Simple delete second" << simple_delete.second << endl;
-
-//                    }
 
                 }
                 if(tempflow == path_flow)
@@ -332,7 +344,6 @@ void routeone(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair
     fdp.close();
 }
 
-//TODO: This algorithm will keep trying to delete a node once it has been removed
 void routetwo(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair<int,int>> &to_delete, pair<int,int> & simple_delete)
 {
     int time = 100;
@@ -356,9 +367,6 @@ void routetwo(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair
         else
             ipk << time <<"," << depth<<endl;
         fordFulkerson(adjL, s, d, V, to_delete, simple_delete, firstrun);
-//        cout <<"=====DELETING====="<<endl;
-//        cout <<"What it is looking for: "<<simple_delete.second<<endl;
-//        cout <<"The node it is coming from: "<<simple_delete.first<<endl;
         vecerase(adjL, simple_delete.second, simple_delete.first);
         time--;
         if(bfs(adjL, s, d, V))
@@ -366,6 +374,7 @@ void routetwo(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair
         else
             flow = 0;
         bfs(adjL, s, d, V);
+        cout <<"DEPTH======: "<<depth<<endl;
     }while(time != 0);
     fot.close();
     ipk.close();
