@@ -20,13 +20,18 @@ void vecerase(vector< list< pair<int, int> > > &adjL, int i, int s);
 bool bfs(vector< list< pair<int, int> > > &adjL, int s, int d, int V);
 int fordFulkerson(vector< list< pair<int, int> > > adjL, int s, int d, int V, list<pair<int,int>> &to_delete, pair<int,int> &simple_delete, bool &firstrun);
 
+void printAllPaths(vector<list<pair<int, int> > > adjL, int s, int d, int V, vector<list<pair<int, int> > > &cp);
+void printAllPathsUtil(vector<list<pair<int, int> > > adjL, int u, int d, bool visited[],
+                       int path[], int &path_index, int weight, vector<list<pair<int, int> > > &cp);
 void routeone(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair<int,int>> &to_delete,pair<int,int> & simple_delete);
 void routetwo(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair<int,int>> &to_delete, pair<int,int> & simple_delete);
+void randomattack(vector<list<pair<int, int> > > adjL, int s, int d, int V);
 
 
 int main() {
     int vertices;
     int tempid = 0;
+    int choice;
     srand(time(NULL));
     int id, loc, countv = 0, counte = 0, source, dest;
     list<pair<int,int>> to_delete;
@@ -34,7 +39,9 @@ int main() {
     bool firstfind = true;
 
     //Opening Output Files
-
+    cout <<"1. Static Calculation"<<endl;
+    cout <<"2. Reactive Calculation"<<endl;
+    cin >>choice;
     string line;
     ifstream fin;
     fin.open("../data.gml");
@@ -78,6 +85,7 @@ int main() {
     vertices = countv;
 
     vector< list< pair<int, int> > > adjacencyList(vertices + 1);
+    vector< list< pair<int, int> > > currentpath(vertices);
 
     fin.open("../data.gml");
     counte = 0;
@@ -144,9 +152,11 @@ int main() {
     {
         source = rand() % vertices;
         dest = rand() % vertices;
+        printAllPaths(adjacencyList, source, dest, vertices, currentpath);
 //        if(depth >=25)
           //  cout <<"The value of depth: "<<depth<<endl;
-    }while(!(bfs(adjacencyList, source, dest, vertices) && depth == 50));
+        cout<<currentpath.size()<<endl;
+    }while(!(bfs(adjacencyList, source, dest, vertices) && currentpath.size() == 50));
 
     //===========Change Source to weight 20===========
     list< pair<int, int> >::iterator itr = adjacencyList[source].begin();
@@ -156,9 +166,15 @@ int main() {
     }
     cout <<"Source: "<<source<<endl;
     cout <<"Dest: "<<dest<<endl;
-    cout <<"Depth: "<<depth<<endl;
-    routeone(adjacencyList, source, dest, vertices, to_delete, simple_delete);
+    cout <<"Depth: "<<currentpath.size()<<endl;
+//    routeone(adjacencyList, source, dest, vertices, to_delete, simple_delete);
 //    routetwo(adjacencyList, source, dest, vertices, to_delete, simple_delete);
+
+
+    //======STATIC======
+    if(choice == 1)
+    {
+    }
     return 0;
 
 }
@@ -186,9 +202,8 @@ void vecerase(vector< list< pair<int, int> > >& adjList, int i, int s)
 
 //Checks to see if the selected values can actually be reached
 bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
-
-
     bool *visited = new bool[V];
+    bool *finddv = new bool[V];
     depth = 0;
     bool notzero = true;
     bool findazero = false;
@@ -196,9 +211,11 @@ bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
         visited[i] = false;
 
     list<int> queue;
+    list<int> findd;
 
     visited[s] = true;
     queue.push_back(s);
+    findd.push_back(s);
 
     list< pair<int, int> >::iterator itr = adjL[s].begin();
 
@@ -319,10 +336,10 @@ void routeone(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair
     bool firstrun1 = true;
     int tempdepth = depth;
     int flow = fordFulkerson(adjL, s, d, V, to_delete, simple_delete, firstrun);
-    fot.open("../flowovertime.csv");
+    fot.open("../attack1flowovertime.csv");
     fot<<"Time, Flow"<<endl;
-    fdp.open("../flowdisp.csv"); //Not sure what to output on this one
-    ipk.open("../impactK.csv");
+    fdp.open("../attack1flowdisp.csv"); //Not sure what to output on this one
+    ipk.open("../attack1impactK.csv");
     ipk<<"Time, Number of Nodes"<<endl;
     do {
         fot << time << "," << flow << endl;
@@ -352,10 +369,10 @@ void routetwo(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair
     bool firstrun1 = true;
     int tempdepth = depth;
     int flow = fordFulkerson(adjL, s, d, V, to_delete, simple_delete, firstrun);
-    fot.open("../flowovertime.csv");
+    fot.open("../attack2flowovertime.csv");
     fot<<"Time, Flow"<<endl;
-    fdp.open("../flowdisp.csv"); //Not sure what to output on this one
-    ipk.open("../impactK.csv");
+    fdp.open("../attack2flowdisp.csv"); //Not sure what to output on this one
+    ipk.open("../attack2impactK.csv");
     ipk<<"Time, Number of Nodes"<<endl;
     do {
 //        cout << time <<","<<flow<<endl;
@@ -379,4 +396,78 @@ void routetwo(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair
     fot.close();
     ipk.close();
     fdp.close();
+}
+
+void randomattack(vector<list<pair<int, int> > > adjL, int s, int d, int V) {
+    fot.open("../attack2flowovertime.csv");
+    fot<<"Time, Flow"<<endl;
+    fdp.open("../attack2flowdisp.csv"); //Not sure what to output on this one
+    ipk.open("../attack2impactK.csv");
+    vecerase(adjL, rand() % V, rand() % V);
+}
+
+// Prints all paths from 's' to 'd'
+void printAllPaths(vector<list<pair<int, int> > > adjL, int s, int d, int V, vector<list<pair<int, int> > > &cp)
+{
+    // Mark all the vertices as not visited
+    bool *visited = new bool[V];
+
+    // Create an array to store paths
+    int *path = new int[V];
+    int path_index = 0; // Initialize path[] as empty
+
+    // Initialize all vertices as not visited
+    for (int i = 0; i < V; i++)
+        visited[i] = false;
+
+    // Call the recursive helper function to print all paths
+    printAllPathsUtil(adjL, s, d, visited, path, path_index, 20, cp);
+}
+
+// A recursive function to print all paths from 'u' to 'd'.
+// visited[] keeps track of vertices in current path.
+// path[] stores actual vertices and path_index is current
+// index in path[]
+void printAllPathsUtil(vector<list<pair<int, int> > > adjL, int u, int d, bool visited[],
+                              int path[], int &path_index, int weight, vector<list<pair<int, int> > > &cp)
+{
+    // Mark the current node and store it in path[]
+    visited[u] = true;
+    path[path_index] = u;
+//    cout <<"Gets here"<<endl;
+    cp[path_index].push_back(make_pair(u,weight));
+//    cout <<"Gets here2"<<endl;
+    path_index++;
+
+    // If current vertex is same as destination, then print
+    // current path[]
+    if (u == d)
+    {
+        cp.resize(path_index);
+//        for (int i = 0; i<path_index; i++)
+//            cout << path[i] << " value of i "<<i<<" ";
+////        cout <<"Path index size: "<<path_index - 1;
+//        cout << endl;
+//        cout <<"Size of cp: "<<cp.size();
+//        cout <<"=================OUT PUTTING CP=================="<<endl;
+//        for (int i = 0; i < cp.size(); ++i) {
+//            printf("adjacencyList[%d]", i);
+//
+//            list<pair<int, int> >::iterator itr1 = cp[i].begin();
+//
+//            while (itr1 != cp[i].end()) {
+//                printf(" -> %d(%d)", itr1->first, itr1->second);
+//                ++itr1;
+//            }
+//            cout <<endl;
+//        }
+    }
+    else // If current vertex is not destination
+    {
+        // Recur for all the vertices adjacent to current vertex
+        list< pair<int, int> >::iterator i = adjL[u].begin();
+        for (i = adjL[u].begin(); i != adjL[u].end(); ++i)
+            if (!visited[i->first])
+                printAllPathsUtil(adjL, i->first, d, visited, path, path_index, i->second, cp);
+    }
 }
