@@ -12,6 +12,7 @@ using namespace std;
 
 
 int depth;
+bool getpath;
 int globalmaxflow = INT_MAX;
 int globalsource_delete = NULL;
 int globallocation_delete = NULL;
@@ -22,15 +23,13 @@ ofstream ipk;
 //Declaring Functions
 void vecerase(vector< list< pair<int, int> > > &adjL, int i, int s);
 bool bfs(vector< list< pair<int, int> > > &adjL, int s, int d, int V);
-int fordFulkerson(vector< list< pair<int, int> > > adjL, int s, int d, int V, list<pair<int,int>> &to_delete, pair<int,int> &simple_delete, bool &firstrun, vector<int> cp);
 
-void printAllPaths(vector<list<pair<int, int> > > adjL, int s, int d, int V, vector<int> &cp);
+void printAllPaths(vector<list<pair<int, int> > > adjL, int s, int d, int V, vector<int> &cp, bool getpath);
 void printAllPathsUtil(vector<list<pair<int, int> > > adjL, int u, int d, bool visited[],
                        int path[], int &path_index, int weight, vector<int> &cp);
-void routeone(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair<int,int>> &to_delete,pair<int,int> & simple_delete);
 void attacktwo(vector<list<pair<int, int> > > &adjL);
 void attackone(vector<list<pair<int, int> > > &adjL, int s, int d, int V, vector<int> &cp);
-void randomattack(vector<list<pair<int, int> > > adjL, int s, int d, int V);
+void randomattack(vector<list<pair<int, int> > > adjL, int V);
 
 
 int main() {
@@ -160,11 +159,11 @@ int main() {
     {
         source = rand() % vertices;
         dest = rand() % vertices;
-        printAllPaths(adjacencyList, source, dest, vertices, currentpath);
+        printAllPaths(adjacencyList, source, dest, vertices, currentpath, true);
 //        if(depth >=25)
           //  cout <<"The value of depth: "<<depth<<endl;
         cout<<currentpath.size()<<endl;
-    }while(!(bfs(adjacencyList, source, dest, vertices) && currentpath.size() < 50));
+    }while(!(currentpath.size() == 50 && globalmaxflow >= 0 && globalmaxflow != INT_MAX));
 
 //    ===========Change Source to weight 20===========
     list< pair<int, int> >::iterator itr = adjacencyList[source].begin();
@@ -173,19 +172,22 @@ int main() {
         ++itr;
     }
     vector< list< pair<int, int> > > adjacencyListstatic_attack2 = adjacencyList;
-//    source = 390;
-//        dest = 328;
+    vector< list< pair<int, int> > > randomlist = adjacencyList;
+
+//    source = 428;
+//        dest = 595;
 //        printAllPaths(adjacencyList, source, dest, vertices, currentpath);
     cout <<"Source: "<<source<<endl;
     cout <<"Dest: "<<dest<<endl;
     cout <<"Depth: "<<currentpath.size()<<endl;
+    cout <<"Value of Flow before anything: "<<globalmaxflow<<endl;
 //    routeone(adjacencyList, source, dest, vertices, to_delete, simple_delete);
 //    routetwo(adjacencyList, source, dest, vertices, to_delete, simple_delete);
 
 
-    //======STATIC======
-    if(choice == 1)
+    if(choice == 1)     //======STATIC======
     {
+        //ATTACK 1
         fot.open("../attack1flowovertime.csv");
         fot<<"Time, Flow"<<endl;
         ipk.open("../attack1impactK.csv");
@@ -200,24 +202,23 @@ int main() {
         while(time != 0)
         {
             fot << time << "," << globalmaxflow << endl;
-//            cout <<time <<" , "<<globalmaxflow<<endl;
             ipk << time <<"," << currentpath.size()<<endl;
-//            cout <<time << ", "<<currentpath.size()<<endl;
             attackone(adjacencyList, source, dest, vertices, currentpath);
             time--;
             if(globalmaxflow != 0)
-                printAllPaths(adjacencyList, source, dest, vertices, currentpath);
+                printAllPaths(adjacencyList, source, dest, vertices, currentpath, false);
         }
         fot.close();
         ipk.close();
 
+        //ATTACK 2
         globalmaxflow = INT_MAX;
         fot.open("../attack2flowovertime.csv");
         fot<<"Time, Flow"<<endl;
         ipk.open("../attack2impactK.csv");
         ipk<<"Time, Number of Nodes"<<endl;
         time = 100;
-        printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath);
+        printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, false);
         while(time != 0)
         {
             fot << time << "," << globalmaxflow << endl;
@@ -226,12 +227,102 @@ int main() {
             attacktwo(adjacencyListstatic_attack2);
             time--;
             if(globalmaxflow != 0)
-                printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath);
+                printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, false);
         }
-
+        fot.close();
+        ipk.close();
+        //TODO: Random is not outputting anything
+        //Random
+        globalmaxflow = INT_MAX;
+        fot.open("../randflowovertime.csv");
+        fot<<"Time, Flow"<<endl;
+        ipk.open("../randimpactK.csv");
+        ipk<<"Time, Number of Nodes"<<endl;
+        time = 100;
+        printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, false);
+        while(time != 0)
+        {
+            fot << time << "," << globalmaxflow << endl;
+//            cout <<time <<" , "<<globalmaxflow<<endl;
+            ipk << time <<"," << currentpath.size()<<endl;
+            randomattack(randomlist, vertices);
+            time--;
+            if(globalmaxflow != 0)
+                printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, false);
+        }
+        fot.close();
+        ipk.close();
     }
-    return 0;
 
+    //TODO: The reactive path is not being recaulted at each time
+    if(choice == 2)     //======REACTIVE======
+    {
+        //ATTACK 1
+        fot.open("../attack1flowovertime.csv");
+        fot << "Time, Flow" << endl;
+        ipk.open("../attack1impactK.csv");
+        ipk << "Time, Number of Nodes" << endl;
+        int time = 100;
+        cout << "value of flow " << globalmaxflow << endl;
+        while (time != 0) {
+            fot << time << "," << globalmaxflow << endl;
+            ipk << time << "," << currentpath.size() << endl;
+            attackone(adjacencyList, source, dest, vertices, currentpath);
+            time--;
+            if (globalmaxflow != 0) {
+                globalmaxflow = INT_MAX;
+                printAllPaths(adjacencyList, source, dest, vertices, currentpath, true);
+            }
+        }
+        fot.close();
+        ipk.close();
+
+        //ATTACK 2
+        globalmaxflow = INT_MAX;
+        fot.open("../attack2flowovertime.csv");
+        fot << "Time, Flow" << endl;
+        ipk.open("../attack2impactK.csv");
+        ipk << "Time, Number of Nodes" << endl;
+        time = 100;
+        printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, true);
+        while (time != 0) {
+            fot << time << "," << globalmaxflow << endl;
+//            cout <<time <<" , "<<globalmaxflow<<endl;
+            ipk << time << "," << currentpath.size() << endl;
+            attacktwo(adjacencyListstatic_attack2);
+            time--;
+            if (globalmaxflow != 0) {
+                globalmaxflow = INT_MAX;
+                printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, true);
+                cout <<"Current path size: "<<currentpath.size()<<endl;
+            }
+
+        }
+        //TODO: Random is not outputting anything
+        //Random
+        globalmaxflow = INT_MAX;
+        fot.open("../randflowovertime.csv");
+        fot << "Time, Flow" << endl;
+        ipk.open("../randimpactK.csv");
+        ipk << "Time, Number of Nodes" << endl;
+        time = 100;
+        printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, true);
+        while (time != 0) {
+            fot << time << "," << globalmaxflow << endl;
+//            cout <<time <<" , "<<globalmaxflow<<endl;
+            ipk << time << "," << currentpath.size() << endl;
+            globalmaxflow = INT_MAX;
+            randomattack(randomlist, vertices);
+            time--;
+            if (globalmaxflow != 0) {
+                globalmaxflow = INT_MAX;
+                printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, true);
+            }
+        }
+        fot.close();
+        ipk.close();
+        return 0;
+    }
 }
 
 //Used to remove an edge (Attack it)
@@ -302,97 +393,6 @@ bool bfs(vector<list<pair<int, int> > > &adjL, int s, int d, int V) {
    delete[](visited);
     return false;
 }
-int fordFulkerson(vector<list<pair<int, int> > > adjL, int s, int d, int V,list<pair<int,int>> &to_delete, pair<int,int> & simple_delete, bool &firstrun1, vector<int> cp) {
-    bool firstrun = true;
-    int max_delete = 0;
-    int path_flow;
-    int foundd = 0;
-    int perms = s;
-    int tempflow = 0;
-    bool addedmax = true;
-    simple_delete.first = 0;
-    simple_delete.second = 0;
-    vector< list< pair<int, int> > > rlist(adjL);
-
-    int max_flow = 0;
-    list< pair<int, int> >::iterator itr = rlist[s].begin();
-    list<int> queue;
-    queue.push_back(s);
-    cout <<"size of queue: "<<queue.size()<<endl;
-
-    while(bfs(rlist,perms,d,V) && queue.size() != 0)
-    {
-        if(firstrun)
-            path_flow = INT_MAX;
-//        cout <<"IN HERE"<<endl;
-        s = queue.front();
-        if(queue.size() != 0)
-            queue.pop_front();
-
-        for(itr = rlist[s].begin(); itr != rlist[s].end(); ++itr) {
-            if (firstrun)
-                firstrun = false;
-            for(int i = 0; i < cp.size() - 1; i++)
-            {
-                if(s == cp[i] && itr->first == cp[i + 1])
-                {
-                    cout <<"Source node: "<<s<<endl;
-                    cout <<"Dest: "<<itr->first<<endl;
-                    queue.push_back((*itr).first);
-                }
-            }
-            if (foundd != 1 && itr->second != 0)
-            {
-                path_flow = min(path_flow, itr->second);
-            }
-            if(foundd == 1 && itr->second != 0)
-            {
-                tempflow = itr->second;
-                itr->second -= path_flow;
-                if(itr->second < 0)
-                    itr->second = 0;
-                if(max_delete < itr->second && s != perms && itr->first != d)
-                {
-                    max_delete = itr->second;
-                    if(to_delete.empty()) {
-                        to_delete.push_back(make_pair(s, itr->first));
-                    }
-                    simple_delete.first = s;
-                    simple_delete.second = itr->first;
-                }
-                if(tempflow == path_flow)
-                    if(foundd == 1 && !addedmax) {
-                        max_flow += path_flow;
-                        addedmax = true;
-                    }
-            }
-            if(itr->second < 0)
-                itr->second = 0;
-            if(itr->first == d) {
-                if(foundd == 0) {
-                    foundd++;
-                    addedmax = false;
-                    queue.clear();
-                    queue.push_back(perms);
-                    break;
-                }
-                else{
-                    foundd = 0;
-                    path_flow = INT_MAX;
-                    addedmax = false;
-                    queue.clear();
-                    queue.push_back(perms);
-                    break;
-                }
-            }
-        }
-    }
-    rlist.clear();
-    firstrun1 = false;
-    queue.clear();
-    return max_flow;
-}
-
 
 void attacktwo(vector<list<pair<int, int> > > &adjL)
 {
@@ -404,7 +404,7 @@ void attacktwo(vector<list<pair<int, int> > > &adjL)
     }
 }
 
-void randomattack(vector<list<pair<int, int> > > adjL, int s, int d, int V) {
+void randomattack(vector<list<pair<int, int> > > adjL, int V) {
     fot.open("../attack2flowovertime.csv");
     fot<<"Time, Flow"<<endl;
     fdp.open("../attack2flowdisp.csv"); //Not sure what to output on this one
@@ -413,7 +413,7 @@ void randomattack(vector<list<pair<int, int> > > adjL, int s, int d, int V) {
 }
 
 // Prints all paths from 's' to 'd'
-void printAllPaths(vector<list<pair<int, int> > > adjL, int s, int d, int V, vector<int> &cp)
+void printAllPaths(vector<list<pair<int, int> > > adjL, int s, int d, int V, vector<int> &cp, bool getpath)
 {
     // Mark all the vertices as not visited
     bool *visited = new bool[V];
@@ -426,6 +426,8 @@ void printAllPaths(vector<list<pair<int, int> > > adjL, int s, int d, int V, vec
     for (int i = 0; i < V; i++)
         visited[i] = false;
     // Call the recursive helper function to print all paths
+    if(getpath)
+        cp.clear();
     printAllPathsUtil(adjL, s, d, visited, path, path_index, 20, cp);
 }
 
@@ -458,7 +460,7 @@ void printAllPathsUtil(vector<list<pair<int, int> > > adjL, int u, int d, bool v
 //            for(itr = adjL[ip].begin(); itr != adjL[cp[ip]].end(); ++itr) {
             do
             {
-                if(itr->first == cp[ip + 1] || ip == cp.size() - 1) {
+                if(itr->first == cp[ip + 1] || ip == cp.size() - 1 || itr->first == d) {
                     globalmaxflow = min(globalmaxflow, itr->second);
 //                    cout<<"value of max flow: "<<globalmaxflow<<endl;
                     globalsource_delete = cp[ip];
@@ -475,7 +477,7 @@ void printAllPathsUtil(vector<list<pair<int, int> > > adjL, int u, int d, bool v
             }
             foundsomething = false;
         }
-//        for (int i = 0; i<path_index; i++)
+        for (int i = 0; i<path_index; i++)
 //            cout << path[i] << " value of i "<<i<<" ";
 //        cout << endl;
 //        cout <<"Path index size: "<<path_index - 1<<endl;
@@ -499,13 +501,8 @@ void attackone(vector<list<pair<int, int> > > &adjL, int s, int d, int V, vector
 //    void vecerase(vector< list< pair<int, int> > >& adjList, int i, int s)
     list<pair<int, int>>::iterator itr = adjL[s].begin();
     vecerase(adjL, cp[2], cp[1]);
-    cout <<"Looking for: "<<cp[2]<<endl;
-    cout <<"Starting at: "<<cp[1]<<endl;
+//    cout <<"Looking for: "<<cp[2]<<endl;
+//    cout <<"Starting at: "<<cp[1]<<endl;
 }
-
-//void newford(vector<list<pair<int, int> > > adjL, int s, int d, int V, vector<int> cp)
-//{
-//
-//}
 
 
