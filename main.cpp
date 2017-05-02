@@ -1,4 +1,3 @@
-//#include "node.h"
 #include <fstream>
 #include <cstdlib>
 #include <cstdio>
@@ -27,13 +26,14 @@ bool bfs(vector< list< pair<int, int> > > &adjL, int s, int d, int V);
 
 void printAllPaths(vector<list<pair<int, int> > > adjL, int s, int d, int V, vector<int> &cp, bool getpath);
 void printAllPathsUtil(vector<list<pair<int, int> > > adjL, int u, int d, bool visited[],
-                       int path[], int &path_index, int weight, vector<int> &cp);
+                       int path[], int &path_index, int weight, vector<int> &cp, bool getpath);
 void attacktwo(vector<list<pair<int, int> > > &adjL);
 void attackone(vector<list<pair<int, int> > > &adjL, int s, int d, int V, vector<int> &cp);
 void randomattack(vector<list<pair<int, int> > > adjL, int V);
 
 
 int main() {
+    int time_count = 0;
     int vertices;
     int tempid = 0;
     int choice;
@@ -44,9 +44,9 @@ int main() {
     bool firstfind = true;
 
     //Opening Output Files
-    cout <<"1. Static Calculation"<<endl;
-    cout <<"2. Reactive Calculation"<<endl;
-    cin >>choice;
+//    cout <<"1. Static Calculation"<<endl;
+//    cout <<"2. Reactive Calculation"<<endl;
+//    cin >>choice;
     string line;
     ifstream fin;
     fin.open("../data.gml");
@@ -160,30 +160,34 @@ int main() {
         ++itr;
     }
     vector< list< pair<int, int> > > adjacencyListstatic_attack2 = adjacencyList;
-    vector< list< pair<int, int> > > randomlist = adjacencyList;
+    vector< list< pair<int, int> > > randomliststatic = adjacencyList;
+    vector< list< pair<int, int> > > randomlistreactive = adjacencyList;
+    vector< list< pair<int, int> > > adjacencyListreactive_attack2 = adjacencyList;
+    vector< list< pair<int, int> > > adjacencyListstatic_attack1 = adjacencyList;
+    vector< list< pair<int, int> > > adjacencyListreactive_attack1 = adjacencyList;
 
-    cout <<"Depth: "<<currentpath.size()<<endl;
-    cout <<"Value of Flow before anything: "<<globalmaxflow<<endl;
+
+//    cout <<"Depth: "<<currentpath.size()<<endl;
+//    cout <<"Value of Flow before anything: "<<globalmaxflow<<endl;
 
 
-    if(choice == 1)     //======STATIC======
-    {
+    //=====Static
         //ATTACK 1
-        fot.open("../attack1flowovertime.csv");
+        fot.open("../attack1flowovertime_static.csv");
         fot << "Time, Flow" << endl;
-        ipk.open("../attack1impactK.csv");
+        ipk.open("../attack1impactK_static.csv");
         ipk << "Time, Number of Nodes" << endl;
-        int time = 100;
-        cout << "value of flow " << globalmaxflow << endl;
-        while (time != 0) {
-            getmaxflow(adjacencyList, currentpath);
-            fot << time << "," << globalmaxflow << endl;
-            ipk << time << "," << currentpath.size() << endl;
-            attackone(adjacencyList, source, dest, vertices, currentpath);
-            time--;
+        time_count = 1000;
+//        cout << "value of flow " << globalmaxflow << endl;
+        while (time_count != 0) {
+            getmaxflow(adjacencyListstatic_attack1, currentpath);
+            fot << time_count << "," << globalmaxflow << endl;
+            ipk << time_count << "," << currentpath.size() << endl;
+            attackone(adjacencyListstatic_attack1, source, dest, vertices, currentpath);
+            time_count--;
             if (globalmaxflow != 0) {
                 globalmaxflow = 0;
-                printAllPaths(adjacencyList, source, dest, vertices, currentpath, true);
+                printAllPaths(adjacencyListstatic_attack1, source, dest, vertices, currentpath, false);
             }
         }
         fot.close();
@@ -191,20 +195,20 @@ int main() {
 
         //ATTACK 2
         globalmaxflow = 0;
-        fot.open("../attack2flowovertime.csv");
+        fot.open("../attack2flowovertime_static.csv");
         fot<<"Time, Flow"<<endl;
-        ipk.open("../attack2impactK.csv");
+        ipk.open("../attack2impactK_static.csv");
         ipk<<"Time, Number of Nodes"<<endl;
-        time = 100;
-        printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, false);
+        time_count = 1000;
+        printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, true);
         getmaxflow(adjacencyListstatic_attack2, currentpath);
-        while(time != 0)
+        while(time_count != 0)
         {
-            fot << time << "," << globalmaxflow << endl;
+            fot << time_count << "," << globalmaxflow << endl;
 //            cout <<time <<" , "<<globalmaxflow<<endl;
-            ipk << time <<"," << currentpath.size()<<endl;
+            ipk << time_count <<"," << currentpath.size()<<endl;
             attacktwo(adjacencyListstatic_attack2);
-            time--;
+            time_count--;
             if(globalmaxflow != 0)
                 getmaxflow(adjacencyListstatic_attack2, currentpath);
         }
@@ -213,46 +217,44 @@ int main() {
         //TODO: Random is not outputting anything
         //Random
         globalmaxflow = 0;
-        fot.open("../randflowovertime.csv");
+        fot.open("../randflowovertime_static.csv");
         fot<<"Time, Flow"<<endl;
-        ipk.open("../randimpactK.csv");
+        ipk.open("../randimpactK_static.csv");
         ipk<<"Time, Number of Nodes"<<endl;
-        time = 100;
-        printAllPaths(randomlist, source, dest, vertices, currentpath, false);
-        getmaxflow(randomlist, currentpath);
-        while(time != 0)
+        time_count= 1000;
+        printAllPaths(randomliststatic, source, dest, vertices, currentpath, true);
+        getmaxflow(randomliststatic, currentpath);
+        while(time_count != 0)
         {
-            fot << time << "," << globalmaxflow << endl;
-            cout << time << "," << globalmaxflow << endl;
-            ipk << time <<"," << currentpath.size()<<endl;
-            randomattack(randomlist, vertices);
-            time--;
+            fot << time_count << "," << globalmaxflow << endl;
+//            cout << time_count << "," << globalmaxflow << endl;
+            ipk << time_count <<"," << currentpath.size()<<endl;
+            randomattack(randomliststatic, vertices);
+            time_count--;
             if(globalmaxflow != 0)
-                getmaxflow(randomlist, currentpath);
+                getmaxflow(randomliststatic, currentpath);
         }
         fot.close();
         ipk.close();
-    }
 
-    //TODO: The reactive path is not being recaulted at each time
-    if(choice == 2)     //======REACTIVE======
-    {
+   //=====Reactive
         //ATTACK 1
-        fot.open("../attack1flowovertime.csv");
+        fot.open("../attack1flowovertime_reactive.csv");
         fot << "Time, Flow" << endl;
-        ipk.open("../attack1impactK.csv");
+        ipk.open("../attack1impactK_reactive.csv");
         ipk << "Time, Number of Nodes" << endl;
-        int time = 100;
-        cout << "value of flow " << globalmaxflow << endl;
-        while (time != 0) {
-            getmaxflow(adjacencyList, currentpath);
-            fot << time << "," << globalmaxflow << endl;
-            ipk << time << "," << currentpath.size() << endl;
-            attackone(adjacencyList, source, dest, vertices, currentpath);
-            time--;
+        time_count = 1000;
+//        cout << "value of flow " << globalmaxflow << endl;
+        printAllPaths(adjacencyListreactive_attack1, source, dest, vertices, currentpath, true);
+        while (time_count != 0) {
+            getmaxflow(adjacencyListreactive_attack1, currentpath);
+            fot << time_count << "," << globalmaxflow << endl;
+            ipk << time_count << "," << currentpath.size() << endl;
+            attackone(adjacencyListreactive_attack1, source, dest, vertices, currentpath);
+            time_count--;
             if (globalmaxflow != 0) {
                 globalmaxflow = 0;
-                printAllPaths(adjacencyList, source, dest, vertices, currentpath, true);
+                printAllPaths(adjacencyListreactive_attack1, source, dest, vertices, currentpath, true);
             }
         }
         fot.close();
@@ -260,54 +262,51 @@ int main() {
 
         //ATTACK 2
         globalmaxflow = 0;
-        fot.open("../attack2flowovertime.csv");
+        fot.open("../attack2flowovertime_reactive.csv");
         fot << "Time, Flow" << endl;
-        ipk.open("../attack2impactK.csv");
+        ipk.open("../attack2impactK_reactive.csv");
         ipk << "Time, Number of Nodes" << endl;
-        time = 100;
-        printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, true);
-        while (time != 0) {
-            getmaxflow(adjacencyList, currentpath);
-            fot << time << "," << globalmaxflow << endl;
-//            cout <<time <<" , "<<globalmaxflow<<endl;
-            ipk << time << "," << currentpath.size() << endl;
-            attacktwo(adjacencyListstatic_attack2);
-            time--;
+        time_count = 1000;
+        printAllPaths(adjacencyListreactive_attack2, source, dest, vertices, currentpath, true);
+        while (time_count != 0) {
+            getmaxflow(adjacencyListreactive_attack2, currentpath);
+            fot << time_count << "," << globalmaxflow << endl;
+            ipk <<time_count << "," << currentpath.size() << endl;
+            attacktwo(adjacencyListreactive_attack2);
+            time_count--;
             if (globalmaxflow != 0) {
                 globalmaxflow = 0;
-                printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, true);
-                cout <<"Current path size: "<<currentpath.size()<<endl;
+                printAllPaths(adjacencyListreactive_attack2, source, dest, vertices, currentpath, true);
             }
 
         }
         fot.close();
         ipk.close();
+
         //TODO: Random is not outputting anything
         //Random
         globalmaxflow = 0;
-        fot.open("../randflowovertime.csv");
+        fot.open("../randflowovertime_reactive.csv");
         fot << "Time, Flow" << endl;
-        ipk.open("../randimpactK.csv");
+        ipk.open("../randimpactK_reactive.csv");
         ipk << "Time, Number of Nodes" << endl;
-        time = 100;
-        printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, true);
-        while (time != 0) {
-            getmaxflow(adjacencyList, currentpath);
-            fot << time << "," << globalmaxflow << endl;
+        time_count = 1000;
+        printAllPaths(randomlistreactive, source, dest, vertices, currentpath, true);
+        while (time_count != 0) {
+            getmaxflow(randomlistreactive, currentpath);
+            fot << time_count << "," << globalmaxflow << endl;
 //            cout <<time <<" , "<<globalmaxflow<<endl;
-            ipk << time << "," << currentpath.size() << endl;
-            globalmaxflow = 0;
-            randomattack(randomlist, vertices);
-            time--;
+            ipk << time_count << "," << currentpath.size() << endl;
+            randomattack(randomlistreactive, vertices);
+            time_count--;
             if (globalmaxflow != 0) {
                 globalmaxflow = 0;
-                printAllPaths(adjacencyListstatic_attack2, source, dest, vertices, currentpath, true);
+                printAllPaths(randomlistreactive, source, dest, vertices, currentpath, true);
             }
         }
         fot.close();
         ipk.close();
         return 0;
-    }
 }
 
 //Used to remove an edge (Attack it)
@@ -384,16 +383,12 @@ void attacktwo(vector<list<pair<int, int> > > &adjL)
     if(globalmaxflow != 0)
     {
         vecerase(adjL, globallocation_delete, globalsource_delete);
-        cout <<"Looking for1: "<<globallocation_delete<<endl;
-        cout <<"Starting at1: "<<globalsource_delete<<endl;
+//        cout <<"Looking for1: "<<globallocation_delete<<endl;
+//        cout <<"Starting at1: "<<globalsource_delete<<endl;
     }
 }
 
 void randomattack(vector<list<pair<int, int> > > adjL, int V) {
-    fot.open("../attack2flowovertime.csv");
-    fot<<"Time, Flow"<<endl;
-    fdp.open("../attack2flowdisp.csv"); //Not sure what to output on this one
-    ipk.open("../attack2impactK.csv");
     vecerase(adjL, rand() % V, rand() % V);
 }
 
@@ -413,7 +408,7 @@ void printAllPaths(vector<list<pair<int, int> > > adjL, int s, int d, int V, vec
     // Call the recursive helper function to print all paths
     if(getpath)
         cp.clear();
-    printAllPathsUtil(adjL, s, d, visited, path, path_index, 20, cp);
+    printAllPathsUtil(adjL, s, d, visited, path, path_index, 20, cp ,getpath);
 }
 
 // A recursive function to print all paths from 'u' to 'd'.
@@ -421,17 +416,17 @@ void printAllPaths(vector<list<pair<int, int> > > adjL, int s, int d, int V, vec
 // path[] stores actual vertices and path_index is current
 // index in path[]
 void printAllPathsUtil(vector<list<pair<int, int> > > adjL, int u, int d, bool visited[],
-                              int path[], int &path_index, int weight, vector<int> &cp)
+                              int path[], int &path_index, int weight, vector<int> &cp, bool getpath)
 {
-    bool foundsomething = false;
-    bool stop = false;
-    int tempflow;
     // Mark the current node and store it in path[]
     visited[u] = true;
-    path[path_index] = u;
+    if(!adjL[cp[u]].empty() && getpath) {
+//        cout <<"in here"<<endl;
+        path[path_index] = u;
 //    cout <<"Gets here"<<endl;
 //    cout <<"Gets here2"<<endl;
-    path_index++;
+        path_index++;
+    }
     // If current vertex is same as destination, then print
     // current path[]
     if (u == d)
@@ -448,7 +443,7 @@ void printAllPathsUtil(vector<list<pair<int, int> > > adjL, int u, int d, bool v
         list< pair<int, int> >::iterator i = adjL[u].begin();
         for (i = adjL[u].begin(); i != adjL[u].end(); ++i)
             if (!visited[i->first])
-                printAllPathsUtil(adjL, i->first, d, visited, path, path_index, i->second, cp);
+                printAllPathsUtil(adjL, i->first, d, visited, path, path_index, i->second, cp, getpath);
     }
 }
 
